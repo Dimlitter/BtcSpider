@@ -14,4 +14,5 @@ print(r)
 
 for record in r :
     print(record)
+mycursor.close()
 mydb.close
