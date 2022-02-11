@@ -20,4 +20,5 @@ for row in myresult:
   remark = row[4]
   id = row[5]
   print(push_id, name, project, date, remark, id)
+mycursor.close()
 mydb.close
