@@ -38,13 +38,13 @@ class novelContentSpider():
         res = ""
         for num in range(1,int(chapter)+1):
             url = originalurl + f'/{num}.html'
-            time.sleep(2)
+            time.sleep(1)
             contents = requests.get(url,headers=self.headers)
             contents.encoding = 'gb2312'
             c = etree.HTML(contents.text)
             contents = c.xpath('//div[@class="read_chapterDetail"]/p/text()')
-            result = "".join(contents)
-            res =  res + result
+            result = "\n".join(contents)
+            res =  res + "\n\n"+ result
             print(f'{num}/{chapter}')
         return res
     def read_csv(self):
