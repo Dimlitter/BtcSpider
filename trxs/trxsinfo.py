@@ -1,4 +1,3 @@
-from operator import index
 import requests
 from lxml import etree
 import time
@@ -55,12 +54,15 @@ class novelSpider():
 
             novel_url = html.xpath(f'/html/body/div[4]/div/div[1]/div[{i}]/a/@href')
 
-            for novel_name, novel_size, updatetime, novel_url in zip(novel_names, novel_size, updatetime, novel_url):
+            novel_infos = html.xpath(f'/html/body/div[4]/div/div[1]/div[{i}]/a/div[2]/p/text()') 
+            
+            for novel_name, novel_size, updatetime, novel_url ,novel_infos in zip(novel_names, novel_size, updatetime, novel_url,novel_infos):
                 novels[index] = [{
                     'novel_name': novel_name,
                     'novel_size': novel_size,
                     'updatetime': updatetime,
-                    'novel_url': "https://www.trxs.cc/tongren/" + novel_url,
+                    'novel_url': "https://www.trxs.cc" + novel_url,
+                    'novel_info': novel_infos
                 }]
         #print(novels)
         return novels,page
@@ -70,7 +72,9 @@ class novelSpider():
             print('没有小说')
         else:
             with open('./novels.csv', 'w',newline = '',encoding = 'utf-8') as f:
-                writer = csv.DictWriter(f, fieldnames=['novel_name', 'novel_size', 'updatetime', 'novel_url'], delimiter = ' ')
+                header = ['novel_name', 'novel_size', 'updatetime', 'novel_url','novel_info']
+                writer = csv.DictWriter(f,header, delimiter = ',')
+                writer.writeheader()
                 for page_index in range(1,int(page)+1):
                     for i in range(1, int(len(novels)/int(page))):
                         writer.writerows(novels['第'+f'{page_index}'+'页'+f'{i}'+'篇'])
