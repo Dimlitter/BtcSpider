@@ -6,9 +6,9 @@ import csv
 import re
 
 class novelSpider():
-    def __init__(self):
+    def __init__(self,page):
         self.url = 'https://www.trxs.cc/tongren/'
-        self.page = 5
+        self.page = page
         daynow = datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT') 
         self.headers = {
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -98,5 +98,5 @@ class novelSpider():
         self.save_novel(novels_all,page)
 
 if __name__ == '__main__':
-    novel = novelSpider()
+    novel = novelSpider(5)
     novel.run()
