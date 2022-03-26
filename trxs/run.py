@@ -21,4 +21,4 @@ if __name__ == '__main__':
     try:
         run(50)
     except:
-        print("faailed")
+        print("failed")

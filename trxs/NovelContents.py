@@ -38,14 +38,23 @@ class novelContentSpider():
         res = ""
         for num in range(1,int(chapter)+1):
             url = originalurl + f'/{num}.html'
-            time.sleep(1)
-            contents = requests.get(url,headers=self.headers)
-            contents.encoding = 'gb2312'
-            c = etree.HTML(contents.text)
-            contents = c.xpath('//div[@class="read_chapterDetail"]/p/text()')
-            result = "\n".join(contents)
-            res =  res + "\n\n"+ result
-            print(f'{num}/{chapter}')
+            flag = False
+            while not flag:
+                try:
+                    time.sleep(1)
+                    contents = requests.get(url,headers=self.headers,timeout=3)
+                    contents.encoding = 'gb2312'
+                    c = etree.HTML(contents.text)
+                    contents = c.xpath('//div[@class="read_chapterDetail"]/p/text()')
+                    result = "\n".join(contents)
+                    res =  res + "\n"+ result
+                    print(f'第{num}/{chapter}节')
+                    flag = True
+                except: 
+                    print(f'第{num}/{chapter}节出错')
+                    time.sleep(10)
+                    flag = False
+                     
         return res
     def read_csv(self):
         novel = {}
@@ -71,11 +80,14 @@ class novelContentSpider():
 
     def geturl(self,novel,novel_name_all):
         for novel_name in novel_name_all:
+            print("正在爬取《"+novel_name+"》")
             url = novel[novel_name]['novel_url']
             chapter = self.getIndex(url)
             res = self.getContent(url,chapter)
             self.write(res,novel_name)
     def write(self,res,novel_name):
+        #novel_name = re.findall("[\u4e00-\u9fa5a-zA-Z0-9():,\?!-？！]+",novel_name)
+        #novel_name = "".join(novel_name)
         with open(f'./{novel_name}.txt','w',encoding='utf-8') as f:
             f.write(res)
     def run(self):
