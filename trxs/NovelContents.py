@@ -4,6 +4,7 @@ import datetime
 from lxml import etree
 import csv
 import re
+from multiprocessing.dummy import Pool as ThreadPool
 
 class novelContentSpider():
     def __init__(self):
@@ -33,27 +34,32 @@ class novelContentSpider():
         chapter = len(chapter)
         return chapter
 
-    def getContent(self,url,chapter):
+    def geturls(self,url,chapter):
         originalurl = re.findall('(https://www.trxs.cc/tongren/.*?).html',url)[0]
-        res = ""
+        urls = []
         for num in range(1,int(chapter)+1):
             url = originalurl + f'/{num}.html'
-            flag = False
-            while not flag:
-                try:
-                    time.sleep(1)
-                    contents = requests.get(url,headers=self.headers,timeout=3)
-                    contents.encoding = 'gb2312'
-                    c = etree.HTML(contents.text)
-                    contents = c.xpath('//div[@class="read_chapterDetail"]/p/text()')
-                    result = "\n".join(contents)
-                    res =  res + "\n"+ result
-                    print(f'第{num}/{chapter}节')
-                    flag = True
-                except: 
-                    print(f'第{num}/{chapter}节出错')
-                    time.sleep(10)
-                    flag = False
+            urls.append(url)
+        return urls
+
+    def getcontent(self,url):
+        flag = False
+        res = ''
+        chapter = re.findall('https://www.trxs.cc/tongren/.*?/(.*?)\.html',url)[0]
+        while not flag:
+            try:
+                time.sleep(1)
+                print('开始正在爬取',chapter,'章',end='\n')
+                contents = requests.get(url,headers=self.headers,timeout=3)
+                contents.encoding = 'gb2312'
+                c = etree.HTML(contents.text)
+                contents = c.xpath('//div[@class="read_chapterDetail"]/p/text()')
+                result = "\n".join(contents)
+                res =  res + "\n"+ result
+                flag = True
+            except: 
+                time.sleep(10)
+                flag = False
                      
         return res
     def read_csv(self):
@@ -83,12 +89,18 @@ class novelContentSpider():
             print("正在爬取《"+novel_name+"》")
             url = novel[novel_name]['novel_url']
             chapter = self.getIndex(url)
-            res = self.getContent(url,chapter)
+            urls = self.geturls(url,chapter)
+
+            pool = ThreadPool(processes=20)
+            res = pool.map(self.getcontent,urls)
+            pool.close()
+            pool.join()
             self.write(res,novel_name)
     def write(self,res,novel_name):
+        res = "".join(res)
         #novel_name = re.findall("[\u4e00-\u9fa5a-zA-Z0-9():,\?!-？！]+",novel_name)
         #novel_name = "".join(novel_name)
-        with open(f'./{novel_name}.txt','w',encoding='utf-8') as f:
+        with open(f'./novels/{novel_name}.txt','w',encoding='utf-8') as f:
             f.write(res)
     def run(self):
         novel,novel_name_all = self.read_csv()
